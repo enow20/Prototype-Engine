@@ -1,4 +1,4 @@
-# Proto Engine
+# Prototype Engine
 
 A lightweight, no-code HTML prototyping platform for Product Managers. Build interactive click-through prototypes entirely in the browser — no backend, no build step, no account required.
 
