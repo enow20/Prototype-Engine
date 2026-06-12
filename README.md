@@ -4,9 +4,11 @@ A lightweight, no-code HTML prototyping platform for Product Managers. Build int
 
 ## Features
 
-- **Add pages** — Upload `.html` files or paste raw HTML code
+- **Multiple projects** — Organize prototypes in project folders (e.g. Vision Planogram, HR Onboarding)
+- **Add pages** — Upload `.html` files or paste raw HTML code inside each project
 - **Edit pages** — Update page name and HTML anytime via the Edit HTML button
-- **Sidebar navigation** — Switch between pages in your project
+- **Sidebar navigation** — Drill into a project, then switch between its pages
+- **Drag to reorder** — Reorder pages within a project via the grip handle
 - **Mapping Mode** — Hover to highlight clickable elements, click to link them to another page
 - **Preview Mode** — Click mapped elements to navigate the prototype like a real app
 - **Local persistence** — Everything is saved automatically in your browser via LocalStorage
@@ -14,12 +16,30 @@ A lightweight, no-code HTML prototyping platform for Product Managers. Build int
 ## Quick Start
 
 1. Open `index.html` in any modern browser (Chrome, Firefox, Safari, Edge)
-2. Click **Add Page** and upload an HTML file or paste your code
-3. Add at least two pages
-4. Switch to **Mapping Mode** and click elements to link them to other pages
-5. Switch to **Preview Mode** and click through your prototype
+2. Click **+ New Project** and name your prototype (e.g. Vision Planogram)
+3. Inside the project, click **+ Add Page** and upload HTML or paste code
+4. Add at least two pages
+5. Switch to **Mapping Mode** and click elements to link them to other pages
+6. Switch to **Preview Mode** and click through your prototype
+
+Use **← Back to Projects** in the sidebar to return to the project list and open a different prototype.
 
 No installation or server needed.
+
+## Navigation
+
+```
+Projects (folders)
+├── Vision Planogram
+│   ├── Check-In
+│   ├── Dashboard
+│   └── Summary
+└── HR Onboarding
+    └── Welcome
+```
+
+- **Projects view** — `+ New Project` creates a folder; click a folder to open it
+- **Pages view** — `+ Add Page` adds HTML pages; mapping and preview work only within the open project
 
 ## How Mapping Works
 
@@ -27,20 +47,20 @@ In **Mapping Mode**, the platform detects interactive elements (`button`, `a`, e
 
 Form fields (`input`, `textarea`, `select`) are intentionally excluded from mapping so you can still type into them during preview.
 
-In **Preview Mode**, clicking a mapped element transitions to the linked page. Unmapped links and form submissions are blocked so the prototype stays contained.
+Links are scoped to the **current project only** — pages cannot link across projects.
 
 ## Tech Stack
 
 - HTML, CSS, Vanilla JavaScript
-- LocalStorage for project data
+- LocalStorage for workspace data
 - Single `index.html` file — fully portable
 
 ## Data Storage
 
-Your project is saved automatically in the browser's **LocalStorage** (not on any server). The storage key is:
+Your workspace is saved automatically in the browser's **LocalStorage** (not on any server). The storage key is:
 
 ```
-protoEngine.project
+protoEngine.workspace
 ```
 
 Closing the tab or browser does **not** reset your work — it reloads from LocalStorage when you open `index.html` again.
@@ -52,12 +72,10 @@ Closing the tab or browser does **not** reset your work — it reloads from Loca
 
 **Caveats:**
 - Data is tied to the browser and origin (e.g. `file://` vs `localhost` are separate)
-- Clearing site data / browsing history can delete your project
+- Clearing site data / browsing history can delete your projects
 - Does not sync across devices or browsers
 
-## Page Order
-
-Drag the **grip handle** (⋮⋮) on the left of any page in the sidebar to reorder pages. Order is saved automatically.
+Older versions used the key `protoEngine.project` — that data is migrated automatically to a project named **My First Project** on first load.
 
 ## License
 

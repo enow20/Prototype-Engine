@@ -87,7 +87,7 @@
     color: var(--sidebar-text-dim);
   }
 
-  #btnAddPage {
+  #btnSidebarPrimary {
     width: calc(100% - 32px);
     margin: 4px 16px 10px;
     padding: 9px 0;
@@ -99,8 +99,8 @@
     font-weight: 600;
     transition: background 0.15s, transform 0.1s;
   }
-  #btnAddPage:hover { background: #3e5ae4; }
-  #btnAddPage:active { transform: scale(0.98); }
+  #btnSidebarPrimary:hover { background: #3e5ae4; }
+  #btnSidebarPrimary:active { transform: scale(0.98); }
 
   #pageList {
     list-style: none;
@@ -208,6 +208,81 @@
     color: var(--sidebar-text-dim);
     line-height: 1.5;
   }
+
+  #projectContext {
+    padding: 10px 12px 6px;
+    border-bottom: 1px solid var(--sidebar-border);
+  }
+
+  #btnBackProjects {
+    border: none;
+    background: transparent;
+    color: var(--sidebar-text-dim);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    text-align: left;
+  }
+  #btnBackProjects:hover { color: var(--sidebar-text); }
+
+  .project-context-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--sidebar-text);
+    padding: 0 2px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #projectList {
+    list-style: none;
+    overflow-y: auto;
+    flex: 1;
+    padding: 0 8px 12px;
+  }
+
+  .project-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 10px;
+    margin-bottom: 2px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--sidebar-text-dim);
+    font-size: 13.5px;
+    transition: background 0.12s, color 0.12s;
+    user-select: none;
+  }
+  .project-item:hover { background: var(--sidebar-surface); color: var(--sidebar-text); }
+
+  .project-item .project-folder-icon { flex-shrink: 0; opacity: 0.85; display: flex; }
+  .project-item .project-info { flex: 1; min-width: 0; }
+  .project-item .project-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+  }
+  .project-item .project-meta {
+    font-size: 11px;
+    color: var(--sidebar-text-dim);
+    margin-top: 2px;
+    opacity: 0.85;
+  }
+  .project-item:hover .project-meta { color: var(--sidebar-text-dim); }
+
+  .project-actions { display: none; gap: 2px; flex-shrink: 0; }
+  .project-item:hover .project-actions { display: flex; }
+
+  #topbar.topbar-idle .mode-toggle,
+  #topbar.topbar-idle #btnEditPageHtml,
+  #topbar.topbar-idle #modeHint { display: none !important; }
 
   /* ---------- Main area ---------- */
   #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
@@ -564,9 +639,15 @@
       </div>
     </div>
 
-    <div class="sidebar-section"><h2>Pages</h2></div>
-    <button id="btnAddPage">+ Add Page</button>
-    <ul id="pageList"></ul>
+    <div id="projectContext" style="display:none">
+      <button type="button" id="btnBackProjects">← Back to Projects</button>
+      <div class="project-context-name" id="activeProjectName"></div>
+    </div>
+
+    <div class="sidebar-section"><h2 id="sidebarSectionTitle">Projects</h2></div>
+    <button type="button" id="btnSidebarPrimary">+ New Project</button>
+    <ul id="projectList"></ul>
+    <ul id="pageList" style="display:none"></ul>
 
     <div class="sidebar-footer">
       Everything is saved locally in your browser. No backend, no account needed.
@@ -575,7 +656,7 @@
 
   <!-- ================= Main ================= -->
   <div id="main">
-    <header id="topbar">
+    <header id="topbar" class="topbar-idle">
       <span id="currentPageName">No page selected</span>
       <button id="btnEditPageHtml" type="button" title="Edit this page's HTML code">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
@@ -596,13 +677,21 @@
 
     <div id="canvas">
       <div id="emptyState">
-        <div class="empty-card">
+        <div id="emptyWorkspace" class="empty-card" style="display:none">
+          <div class="empty-icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4f6df5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>Select or create a project</h3>
+          <p>Projects work like folders — each one holds its own pages and link mappings. Open an existing project from the sidebar, or create a new one to get started.</p>
+          <button type="button" id="btnEmptyNewProject">+ New Project</button>
+        </div>
+        <div id="emptyProject" class="empty-card" style="display:none">
           <div class="empty-icon">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4f6df5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>
           </div>
-          <h3>Start your prototype</h3>
-          <p>Add your first page by uploading an <b>.html</b> file or pasting raw HTML code. Then switch to <b>Mapping Mode</b> to link buttons between pages and play the flow back in <b>Preview Mode</b>.</p>
-          <button id="btnEmptyAdd">+ Add your first page</button>
+          <h3>Add pages to this project</h3>
+          <p>Upload an <b>.html</b> file or paste raw HTML code. Then use <b>Mapping Mode</b> to link elements between pages and play the flow in <b>Preview Mode</b>.</p>
+          <button type="button" id="btnEmptyAdd">+ Add your first page</button>
         </div>
       </div>
       <div id="frameWrap" style="display:none">
@@ -652,6 +741,26 @@
     </div>
   </div>
 
+  <!-- ================= New Project Modal ================= -->
+  <div class="overlay" id="newProjectOverlay">
+    <div class="modal" style="width:420px">
+      <div class="modal-header">
+        <h3>New Project</h3>
+        <button class="modal-close" data-close="newProjectOverlay">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label for="inputProjectName">Project name</label>
+          <input type="text" id="inputProjectName" placeholder="e.g. Vision Planogram, HR Onboarding…" maxlength="80" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" data-close="newProjectOverlay">Cancel</button>
+        <button class="btn btn-primary" id="btnSaveProject">Create Project</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= Link Element Modal ================= -->
   <div class="overlay" id="linkOverlay">
     <div class="modal" style="width:440px">
@@ -687,12 +796,12 @@
   /* =====================================================
      State & LocalStorage store
   ===================================================== */
-  var STORAGE_KEY = "protoEngine.project";
+  var STORAGE_KEY = "protoEngine.workspace";
+  var LEGACY_KEY = "protoEngine.project";
 
   var state = {
-    pages: [],          // [{ id, name, html }]
-    mappings: {},       // { pageId: { selector: targetPageId } }
-    activePageId: null
+    activeProjectId: null,
+    projects: []
   };
 
   var mode = "preview"; // "preview" | "mapping"
@@ -700,15 +809,37 @@
   function load() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      var data = JSON.parse(raw);
-      if (data && Array.isArray(data.pages)) {
-        state.pages = data.pages;
-        state.mappings = data.mappings || {};
-        state.activePageId = data.activePageId || (data.pages[0] && data.pages[0].id) || null;
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data && Array.isArray(data.projects)) {
+          state.projects = data.projects;
+          state.activeProjectId = data.activeProjectId || null;
+          if (state.activeProjectId && !getProject(state.activeProjectId)) {
+            state.activeProjectId = null;
+          }
+        }
+        return;
       }
+
+      var legacyRaw = localStorage.getItem(LEGACY_KEY);
+      if (!legacyRaw) return;
+      var legacy = JSON.parse(legacyRaw);
+      if (!legacy || !Array.isArray(legacy.pages)) return;
+
+      var migratedId = uidProject();
+      state.projects = [{
+        id: migratedId,
+        name: "My First Project",
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        pages: legacy.pages,
+        mappings: legacy.mappings || {},
+        activePageId: legacy.activePageId || (legacy.pages[0] && legacy.pages[0].id) || null
+      }];
+      state.activeProjectId = null;
+      save();
     } catch (e) {
-      console.warn("Proto Engine: could not load project from LocalStorage", e);
+      console.warn("Proto Engine: could not load workspace from LocalStorage", e);
     }
   }
 
@@ -724,16 +855,47 @@
     return "p_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
 
+  function uidProject() {
+    return "proj_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function getProject(id) {
+    for (var i = 0; i < state.projects.length; i++) {
+      if (state.projects[i].id === id) return state.projects[i];
+    }
+    return null;
+  }
+
+  function getActiveProject() {
+    return state.activeProjectId ? getProject(state.activeProjectId) : null;
+  }
+
+  function touchProject(proj) {
+    if (proj) proj.updatedAt = Date.now();
+  }
+
   function getPage(id) {
-    for (var i = 0; i < state.pages.length; i++) {
-      if (state.pages[i].id === id) return state.pages[i];
+    var proj = getActiveProject();
+    if (!proj) return null;
+    for (var i = 0; i < proj.pages.length; i++) {
+      if (proj.pages[i].id === id) return proj.pages[i];
     }
     return null;
   }
 
   function mappingCount(pageId) {
-    var m = state.mappings[pageId];
+    var proj = getActiveProject();
+    if (!proj) return 0;
+    var m = proj.mappings[pageId];
     return m ? Object.keys(m).length : 0;
+  }
+
+  function projectLinkCount(proj) {
+    var total = 0;
+    Object.keys(proj.mappings || {}).forEach(function (pid) {
+      total += Object.keys(proj.mappings[pid]).length;
+    });
+    return total;
   }
 
   /* =====================================================
@@ -741,6 +903,7 @@
   ===================================================== */
   var $ = function (id) { return document.getElementById(id); };
 
+  var projectList = $("projectList");
   var pageList = $("pageList");
   var frame = $("frame");
   var frameWrap = $("frameWrap");
@@ -770,6 +933,7 @@
   var ICON_CODE = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>';
   var ICON_TRASH = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
   var ICON_GRIP = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
+  var ICON_FOLDER = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>';
 
   var dragPageId = null;
   var dropIndicator = null;
@@ -782,24 +946,28 @@
   }
 
   function pageIndex(id) {
-    for (var i = 0; i < state.pages.length; i++) {
-      if (state.pages[i].id === id) return i;
+    var proj = getActiveProject();
+    if (!proj) return -1;
+    for (var i = 0; i < proj.pages.length; i++) {
+      if (proj.pages[i].id === id) return i;
     }
     return -1;
   }
 
   function reorderPage(draggedId, targetId, placeBefore) {
+    var proj = getActiveProject();
+    if (!proj) return;
     var fromIdx = pageIndex(draggedId);
-    var targetIdx = pageIndex(targetId);
-    if (fromIdx < 0 || targetIdx < 0 || fromIdx === targetIdx) return;
+    if (fromIdx < 0 || pageIndex(targetId) < 0 || fromIdx === pageIndex(targetId)) return;
 
-    var item = state.pages.splice(fromIdx, 1)[0];
+    var item = proj.pages.splice(fromIdx, 1)[0];
     var insertIdx = pageIndex(targetId);
     if (!placeBefore) insertIdx += 1;
-    state.pages.splice(insertIdx, 0, item);
+    proj.pages.splice(insertIdx, 0, item);
 
+    touchProject(proj);
     save();
-    renderSidebar();
+    renderPageList();
   }
 
   function bindPageDragDrop(li, page) {
@@ -863,10 +1031,101 @@
     return handle;
   }
 
-  function renderSidebar() {
-    pageList.innerHTML = "";
+  function renderNav() {
+    var inProject = !!state.activeProjectId;
+    var proj = getActiveProject();
 
-    if (state.pages.length === 0) {
+    $("projectContext").style.display = inProject ? "block" : "none";
+    projectList.style.display = inProject ? "none" : "block";
+    pageList.style.display = inProject ? "block" : "none";
+    $("sidebarSectionTitle").textContent = inProject ? "Pages" : "Projects";
+    $("btnSidebarPrimary").textContent = inProject ? "+ Add Page" : "+ New Project";
+
+    if (inProject && proj) {
+      $("activeProjectName").textContent = proj.name;
+      renderPageList();
+    } else {
+      renderProjectList();
+    }
+
+    renderFrame(false);
+  }
+
+  function renderProjectList() {
+    projectList.innerHTML = "";
+
+    if (state.projects.length === 0) {
+      var empty = document.createElement("li");
+      empty.className = "sidebar-empty";
+      empty.textContent = "No projects yet. Create one to get started.";
+      projectList.appendChild(empty);
+      return;
+    }
+
+    state.projects.forEach(function (proj) {
+      var li = document.createElement("li");
+      li.className = "project-item";
+
+      var folderIcon = document.createElement("span");
+      folderIcon.className = "project-folder-icon";
+      folderIcon.innerHTML = ICON_FOLDER;
+
+      var info = document.createElement("div");
+      info.className = "project-info";
+
+      var name = document.createElement("div");
+      name.className = "project-name";
+      name.textContent = proj.name;
+      name.title = proj.name;
+
+      var meta = document.createElement("div");
+      meta.className = "project-meta";
+      var pageN = proj.pages.length;
+      var linkN = projectLinkCount(proj);
+      meta.textContent = pageN + " page" + (pageN === 1 ? "" : "s") + " · " + linkN + " link" + (linkN === 1 ? "" : "s");
+
+      info.appendChild(name);
+      info.appendChild(meta);
+
+      var actions = document.createElement("span");
+      actions.className = "project-actions";
+
+      var btnRename = document.createElement("button");
+      btnRename.className = "icon-btn";
+      btnRename.title = "Rename project";
+      btnRename.innerHTML = ICON_EDIT;
+      btnRename.addEventListener("click", function (e) {
+        e.stopPropagation();
+        renameProject(proj.id);
+      });
+
+      var btnDelete = document.createElement("button");
+      btnDelete.className = "icon-btn danger";
+      btnDelete.title = "Delete project";
+      btnDelete.innerHTML = ICON_TRASH;
+      btnDelete.addEventListener("click", function (e) {
+        e.stopPropagation();
+        deleteProject(proj.id);
+      });
+
+      actions.appendChild(btnRename);
+      actions.appendChild(btnDelete);
+
+      li.appendChild(folderIcon);
+      li.appendChild(info);
+      li.appendChild(actions);
+      li.addEventListener("click", function () { enterProject(proj.id); });
+
+      projectList.appendChild(li);
+    });
+  }
+
+  function renderPageList() {
+    pageList.innerHTML = "";
+    var proj = getActiveProject();
+    if (!proj) return;
+
+    if (proj.pages.length === 0) {
       var empty = document.createElement("li");
       empty.className = "sidebar-empty";
       empty.textContent = "No pages yet. Add one to get started.";
@@ -874,9 +1133,9 @@
       return;
     }
 
-    state.pages.forEach(function (page) {
+    proj.pages.forEach(function (page) {
       var li = document.createElement("li");
-      li.className = "page-item" + (page.id === state.activePageId ? " active" : "");
+      li.className = "page-item" + (page.id === proj.activePageId ? " active" : "");
 
       var handle = bindPageDragDrop(li, page);
 
@@ -940,78 +1199,154 @@
   }
 
   /* =====================================================
+     Project CRUD
+  ===================================================== */
+  function createProject(name) {
+    var proj = {
+      id: uidProject(),
+      name: name,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      pages: [],
+      mappings: {},
+      activePageId: null
+    };
+    state.projects.push(proj);
+    state.activeProjectId = proj.id;
+    save();
+    renderNav();
+    toast('Project "' + name + '" created.');
+  }
+
+  function enterProject(id) {
+    if (state.activeProjectId === id) return;
+    state.activeProjectId = id;
+    var proj = getActiveProject();
+    if (proj && !proj.activePageId && proj.pages[0]) {
+      proj.activePageId = proj.pages[0].id;
+    }
+    save();
+    renderNav();
+  }
+
+  function exitProject() {
+    state.activeProjectId = null;
+    save();
+    renderNav();
+  }
+
+  function renameProject(id) {
+    var proj = getProject(id);
+    if (!proj) return;
+    var newName = prompt("Rename project:", proj.name);
+    if (newName === null) return;
+    newName = newName.trim();
+    if (!newName) { toast("Project name cannot be empty."); return; }
+    proj.name = newName;
+    touchProject(proj);
+    save();
+    if (state.activeProjectId === id) {
+      $("activeProjectName").textContent = newName;
+    }
+    renderProjectList();
+  }
+
+  function deleteProject(id) {
+    var proj = getProject(id);
+    if (!proj) return;
+    var ok = confirm('Delete project "' + proj.name + '"?\nAll pages and links inside it will be removed permanently.');
+    if (!ok) return;
+
+    state.projects = state.projects.filter(function (p) { return p.id !== id; });
+    if (state.activeProjectId === id) {
+      state.activeProjectId = null;
+    }
+
+    save();
+    renderNav();
+    toast('Project "' + proj.name + '" deleted.');
+  }
+
+  /* =====================================================
      Page CRUD
   ===================================================== */
   function addPage(name, html) {
+    var proj = getActiveProject();
+    if (!proj) { toast("Open a project first."); return; }
     var page = { id: uid(), name: name, html: html };
-    state.pages.push(page);
-    state.activePageId = page.id;
+    proj.pages.push(page);
+    proj.activePageId = page.id;
+    touchProject(proj);
     save();
-    renderSidebar();
+    renderPageList();
     renderFrame(false);
     toast('Page "' + name + '" added.');
   }
 
   function updatePage(id, name, html) {
     var page = getPage(id);
-    if (!page) return;
+    var proj = getActiveProject();
+    if (!page || !proj) return;
     page.name = name;
     page.html = html;
+    touchProject(proj);
     save();
-    renderSidebar();
+    renderPageList();
     updateTopbar();
-    if (state.activePageId === id) renderFrame(false);
+    if (proj.activePageId === id) renderFrame(false);
     toast('Page "' + name + '" updated. Re-check links if you changed the HTML structure.');
   }
 
   function renamePage(id) {
     var page = getPage(id);
-    if (!page) return;
+    var proj = getActiveProject();
+    if (!page || !proj) return;
     var newName = prompt("Rename page:", page.name);
     if (newName === null) return;
     newName = newName.trim();
     if (!newName) { toast("Page name cannot be empty."); return; }
     page.name = newName;
+    touchProject(proj);
     save();
-    renderSidebar();
+    renderPageList();
     updateTopbar();
   }
 
   function deletePage(id) {
     var page = getPage(id);
-    if (!page) return;
+    var proj = getActiveProject();
+    if (!page || !proj) return;
     var ok = confirm('Delete page "' + page.name + '"?\nAll links from and to this page will be removed too.');
     if (!ok) return;
 
-    state.pages = state.pages.filter(function (p) { return p.id !== id; });
+    proj.pages = proj.pages.filter(function (p) { return p.id !== id; });
+    delete proj.mappings[id];
 
-    // remove this page's own mappings
-    delete state.mappings[id];
-
-    // remove mappings on other pages that point to the deleted page
-    Object.keys(state.mappings).forEach(function (pid) {
-      var m = state.mappings[pid];
+    Object.keys(proj.mappings).forEach(function (pid) {
+      var m = proj.mappings[pid];
       Object.keys(m).forEach(function (sel) {
         if (m[sel] === id) delete m[sel];
       });
-      if (Object.keys(m).length === 0) delete state.mappings[pid];
+      if (Object.keys(m).length === 0) delete proj.mappings[pid];
     });
 
-    if (state.activePageId === id) {
-      state.activePageId = state.pages[0] ? state.pages[0].id : null;
+    if (proj.activePageId === id) {
+      proj.activePageId = proj.pages[0] ? proj.pages[0].id : null;
     }
 
+    touchProject(proj);
     save();
-    renderSidebar();
+    renderPageList();
     renderFrame(false);
     toast('Page "' + page.name + '" deleted.');
   }
 
   function setActivePage(id, withTransition) {
-    if (state.activePageId === id) return;
-    state.activePageId = id;
+    var proj = getActiveProject();
+    if (!proj || proj.activePageId === id) return;
+    proj.activePageId = id;
     save();
-    renderSidebar();
+    renderPageList();
     renderFrame(withTransition !== false);
   }
 
@@ -1019,8 +1354,12 @@
      Frame rendering
   ===================================================== */
   function updateTopbar() {
-    var page = getPage(state.activePageId);
-    currentPageName.textContent = page ? page.name : "No page selected";
+    var proj = getActiveProject();
+    var page = proj ? getPage(proj.activePageId) : null;
+    var inEditor = !!(proj && page);
+
+    $("topbar").classList.toggle("topbar-idle", !inEditor);
+    currentPageName.textContent = page ? page.name : (proj ? proj.name + " — no page" : "Select a project");
     $("btnEditPageHtml").style.display = page ? "inline-flex" : "none";
 
     btnPreview.className = mode === "preview" ? "active-preview" : "";
@@ -1038,10 +1377,23 @@
 
   function renderFrame(withTransition) {
     updateTopbar();
-    var page = getPage(state.activePageId);
+    var proj = getActiveProject();
+    var page = proj ? getPage(proj.activePageId) : null;
+
+    $("emptyWorkspace").style.display = "none";
+    $("emptyProject").style.display = "none";
+
+    if (!proj) {
+      emptyState.style.display = "flex";
+      $("emptyWorkspace").style.display = "block";
+      frameWrap.style.display = "none";
+      frame.srcdoc = "";
+      return;
+    }
 
     if (!page) {
       emptyState.style.display = "flex";
+      $("emptyProject").style.display = "block";
       frameWrap.style.display = "none";
       frame.srcdoc = "";
       return;
@@ -1112,8 +1464,9 @@
 
   function markMappedElements() {
     var doc = frameDoc();
-    if (!doc || !doc.body) return;
-    var m = state.mappings[state.activePageId] || {};
+    var proj = getActiveProject();
+    if (!doc || !doc.body || !proj) return;
+    var m = proj.mappings[proj.activePageId] || {};
 
     // clear previous marks
     var marked = doc.querySelectorAll(".__pe-mapped");
@@ -1256,7 +1609,9 @@
     }
 
     // ---------- Preview Mode ----------
-    var m = state.mappings[state.activePageId] || {};
+    var proj = getActiveProject();
+    if (!proj) return;
+    var m = proj.mappings[proj.activePageId] || {};
     var selectors = Object.keys(m);
 
     // walk up from the clicked element looking for a mapped ancestor
@@ -1298,7 +1653,8 @@
   }
 
   function openLinkModal(selector, el) {
-    if (state.pages.length < 2) {
+    var proj = getActiveProject();
+    if (!proj || proj.pages.length < 2) {
       toast("Add at least one more page first, so there is something to link to.");
       return;
     }
@@ -1309,15 +1665,15 @@
     $("linkElTag").textContent = "<" + desc.tag + ">";
     $("linkElLabel").textContent = desc.label;
 
-    var m = state.mappings[state.activePageId] || {};
+    var m = proj.mappings[proj.activePageId] || {};
     var existingTargetId = m[selector] || null;
     var existingTarget = existingTargetId ? getPage(existingTargetId) : null;
 
     // populate dropdown with all pages except the current one
     var select = $("linkTargetSelect");
     select.innerHTML = "";
-    state.pages.forEach(function (page) {
-      if (page.id === state.activePageId) return;
+    proj.pages.forEach(function (page) {
+      if (page.id === proj.activePageId) return;
       var opt = document.createElement("option");
       opt.value = page.id;
       opt.textContent = page.name;
@@ -1340,31 +1696,37 @@
 
   $("btnSaveLink").addEventListener("click", function () {
     if (!pendingSelector) return;
+    var proj = getActiveProject();
+    if (!proj) return;
     var targetId = $("linkTargetSelect").value;
     if (!targetId) return;
 
-    if (!state.mappings[state.activePageId]) state.mappings[state.activePageId] = {};
-    state.mappings[state.activePageId][pendingSelector] = targetId;
+    if (!proj.mappings[proj.activePageId]) proj.mappings[proj.activePageId] = {};
+    proj.mappings[proj.activePageId][pendingSelector] = targetId;
+    touchProject(proj);
     save();
 
     closeOverlay("linkOverlay");
     markMappedElements();
-    renderSidebar();
+    renderPageList();
     var target = getPage(targetId);
     toast("Linked to \u201C" + (target ? target.name : "?") + "\u201D.");
   });
 
   $("btnRemoveLink").addEventListener("click", function () {
     if (!pendingSelector) return;
-    var m = state.mappings[state.activePageId];
+    var proj = getActiveProject();
+    if (!proj) return;
+    var m = proj.mappings[proj.activePageId];
     if (m) {
       delete m[pendingSelector];
-      if (Object.keys(m).length === 0) delete state.mappings[state.activePageId];
+      if (Object.keys(m).length === 0) delete proj.mappings[proj.activePageId];
     }
+    touchProject(proj);
     save();
     closeOverlay("linkOverlay");
     markMappedElements();
-    renderSidebar();
+    renderPageList();
     toast("Link removed.");
   });
 
@@ -1406,9 +1768,19 @@
   }
 
   function openAddPageModal() {
+    if (!getActiveProject()) {
+      toast("Open a project first.");
+      return;
+    }
     resetAddPageModal();
     openOverlay("addPageOverlay");
     setTimeout(function () { $("inputPageName").focus(); }, 50);
+  }
+
+  function openNewProjectModal() {
+    $("inputProjectName").value = "";
+    openOverlay("newProjectOverlay");
+    setTimeout(function () { $("inputProjectName").focus(); }, 50);
   }
 
   function openEditPageModal(id) {
@@ -1545,18 +1917,34 @@
     }
   });
 
-  $("btnAddPage").addEventListener("click", openAddPageModal);
+  $("btnSidebarPrimary").addEventListener("click", function () {
+    if (state.activeProjectId) openAddPageModal();
+    else openNewProjectModal();
+  });
   $("btnEmptyAdd").addEventListener("click", openAddPageModal);
+  $("btnEmptyNewProject").addEventListener("click", openNewProjectModal);
+  $("btnBackProjects").addEventListener("click", exitProject);
   $("btnEditPageHtml").addEventListener("click", function () {
-    if (state.activePageId) openEditPageModal(state.activePageId);
+    var proj = getActiveProject();
+    if (proj && proj.activePageId) openEditPageModal(proj.activePageId);
+  });
+
+  $("btnSaveProject").addEventListener("click", function () {
+    var name = $("inputProjectName").value.trim();
+    if (!name) {
+      toast("Give the project a name first.");
+      $("inputProjectName").focus();
+      return;
+    }
+    createProject(name);
+    closeOverlay("newProjectOverlay");
   });
 
   /* =====================================================
      Boot
   ===================================================== */
   load();
-  renderSidebar();
-  renderFrame(false);
+  renderNav();
 })();
 </script>
 </body>
