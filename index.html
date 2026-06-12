@@ -112,17 +112,45 @@
   .page-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     padding: 9px 10px;
     margin-bottom: 2px;
     border-radius: 8px;
     cursor: pointer;
     color: var(--sidebar-text-dim);
     font-size: 13.5px;
-    transition: background 0.12s, color 0.12s;
+    transition: background 0.12s, color 0.12s, opacity 0.12s;
     user-select: none;
+    position: relative;
   }
   .page-item:hover { background: var(--sidebar-surface); color: var(--sidebar-text); }
+  .page-item.dragging { opacity: 0.45; }
+  .page-item.drop-before::before,
+  .page-item.drop-after::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+    pointer-events: none;
+  }
+  .page-item.drop-before::before { top: -1px; }
+  .page-item.drop-after::after { bottom: -1px; }
+
+  .page-drag-handle {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 2px 0;
+    color: var(--sidebar-text-dim);
+    opacity: 0.35;
+    cursor: grab;
+    touch-action: none;
+  }
+  .page-item:hover .page-drag-handle { opacity: 0.7; }
+  .page-drag-handle:active { cursor: grabbing; }
   .page-item.active {
     background: var(--accent-soft);
     color: #aebcff;
@@ -741,6 +769,99 @@
   var ICON_EDIT = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
   var ICON_CODE = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>';
   var ICON_TRASH = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+  var ICON_GRIP = '<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
+
+  var dragPageId = null;
+  var dropIndicator = null;
+
+  function clearDropIndicators() {
+    pageList.querySelectorAll(".page-item.drop-before, .page-item.drop-after").forEach(function (el) {
+      el.classList.remove("drop-before", "drop-after");
+    });
+    dropIndicator = null;
+  }
+
+  function pageIndex(id) {
+    for (var i = 0; i < state.pages.length; i++) {
+      if (state.pages[i].id === id) return i;
+    }
+    return -1;
+  }
+
+  function reorderPage(draggedId, targetId, placeBefore) {
+    var fromIdx = pageIndex(draggedId);
+    var targetIdx = pageIndex(targetId);
+    if (fromIdx < 0 || targetIdx < 0 || fromIdx === targetIdx) return;
+
+    var item = state.pages.splice(fromIdx, 1)[0];
+    var insertIdx = pageIndex(targetId);
+    if (!placeBefore) insertIdx += 1;
+    state.pages.splice(insertIdx, 0, item);
+
+    save();
+    renderSidebar();
+  }
+
+  function bindPageDragDrop(li, page) {
+    var handle = document.createElement("span");
+    handle.className = "page-drag-handle";
+    handle.title = "Drag to reorder";
+    handle.innerHTML = ICON_GRIP;
+    handle.draggable = true;
+
+    handle.addEventListener("dragstart", function (e) {
+      dragPageId = page.id;
+      e.dataTransfer.setData("text/plain", page.id);
+      e.dataTransfer.effectAllowed = "move";
+      li.classList.add("dragging");
+    });
+
+    handle.addEventListener("dragend", function () {
+      dragPageId = null;
+      li.classList.remove("dragging");
+      clearDropIndicators();
+    });
+
+    handle.addEventListener("click", function (e) { e.stopPropagation(); });
+
+    li.addEventListener("dragover", function (e) {
+      if (!dragPageId || dragPageId === page.id) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+
+      var rect = li.getBoundingClientRect();
+      var before = e.clientY < rect.top + rect.height / 2;
+      var next = before ? "drop-before" : "drop-after";
+      if (dropIndicator !== next) {
+        clearDropIndicators();
+        li.classList.add(next);
+        dropIndicator = next;
+      }
+    });
+
+    li.addEventListener("dragleave", function (e) {
+      if (!li.contains(e.relatedTarget)) {
+        li.classList.remove("drop-before", "drop-after");
+        dropIndicator = null;
+      }
+    });
+
+    li.addEventListener("drop", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var draggedId = e.dataTransfer.getData("text/plain") || dragPageId;
+      if (!draggedId || draggedId === page.id) {
+        clearDropIndicators();
+        return;
+      }
+      var rect = li.getBoundingClientRect();
+      var placeBefore = e.clientY < rect.top + rect.height / 2;
+      reorderPage(draggedId, page.id, placeBefore);
+      clearDropIndicators();
+    });
+
+    return handle;
+  }
 
   function renderSidebar() {
     pageList.innerHTML = "";
@@ -756,6 +877,8 @@
     state.pages.forEach(function (page) {
       var li = document.createElement("li");
       li.className = "page-item" + (page.id === state.activePageId ? " active" : "");
+
+      var handle = bindPageDragDrop(li, page);
 
       var icon = document.createElement("span");
       icon.className = "page-icon";
@@ -805,6 +928,7 @@
       actions.appendChild(btnEditHtml);
       actions.appendChild(btnDelete);
 
+      li.appendChild(handle);
       li.appendChild(icon);
       li.appendChild(name);
       li.appendChild(count);

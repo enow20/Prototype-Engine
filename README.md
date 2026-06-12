@@ -37,7 +37,27 @@ In **Preview Mode**, clicking a mapped element transitions to the linked page. U
 
 ## Data Storage
 
-Project data is stored locally under the key `protoEngine.project` in your browser's LocalStorage. Clearing browser data will remove your project. Data does not sync across devices or browsers.
+Your project is saved automatically in the browser's **LocalStorage** (not on any server). The storage key is:
+
+```
+protoEngine.project
+```
+
+Closing the tab or browser does **not** reset your work — it reloads from LocalStorage when you open `index.html` again.
+
+**Where to find it (for the curious):**
+- Chrome / Edge: DevTools → Application → Local Storage → select your page's origin
+- Firefox: DevTools → Storage → Local Storage
+- Safari: Develop → Show Web Inspector → Storage → Local Storage
+
+**Caveats:**
+- Data is tied to the browser and origin (e.g. `file://` vs `localhost` are separate)
+- Clearing site data / browsing history can delete your project
+- Does not sync across devices or browsers
+
+## Page Order
+
+Drag the **grip handle** (⋮⋮) on the left of any page in the sidebar to reorder pages. Order is saved automatically.
 
 ## License
 
